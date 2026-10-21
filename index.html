@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Calculadora de meio de cultura — UFAC</title>
+<meta name="description" content="Meio MS, diluições de hipoclorito e reguladores de crescimento. Mini curso de cultura de tecidos, UFAC.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f6f1e7; --surface:#ece4d4; --ink:#2a2119; --muted:#65574a;
+  --canopy:#2f5d3a; --root:#9c4f28; --cryo:#2f6b7a; --seed:#d9a441;
+  --line:#cbbfa8; --line-strong:#8a7a64; --on-brand:#ffffff;
+  --display:'Fraunces',Georgia,serif;
+  --body:'Source Sans 3','Segoe UI',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1a1712; --surface:#252119; --ink:#f2ebdf; --muted:#bcae9b;
+  --canopy:#86bb8f; --root:#e0936a; --cryo:#8cc6d2; --seed:#e2b25a;
+  --line:#4a4234; --line-strong:#7d705d; --on-brand:#1a1712;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#1a1712; --surface:#252119; --ink:#f2ebdf; --muted:#bcae9b;
+  --canopy:#86bb8f; --root:#e0936a; --cryo:#8cc6d2; --seed:#e2b25a;
+  --line:#4a4234; --line-strong:#7d705d; --on-brand:#1a1712;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:30px;line-height:1.12}
+h2{font-size:23px;line-height:1.18}
+h3{font-size:17px;line-height:1.25}
+p{margin:0}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--root)}
+.sub{color:var(--muted);margin-top:8px;font-size:16px}
+header{border-bottom:2px solid var(--ink);padding-bottom:18px}
+
+nav{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 26px}
+nav button{font-family:var(--body);font-size:15px;font-weight:600;color:var(--ink);background:transparent;
+  border:1px solid var(--line-strong);border-radius:6px;padding:9px 14px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--canopy);border-color:var(--canopy);color:var(--on-brand)}
+nav button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cryo);outline-offset:2px}
+
+section.panel{display:flex;flex-direction:column;gap:22px}
+.card{background:var(--surface);border-radius:8px;border-top:5px solid var(--canopy);padding:18px}
+.card.r{border-top-color:var(--root)} .card.c{border-top-color:var(--cryo)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+label{display:flex;flex-direction:column;gap:5px;font-size:14px;font-weight:600;color:var(--muted);min-width:0}
+input,select{font-family:var(--mono);font-size:17px;color:var(--ink);background:var(--bg);
+  border:1px solid var(--line-strong);border-radius:5px;padding:9px 10px;width:100%;min-width:0}
+.hint{font-size:14px;color:var(--muted);line-height:1.45}
+.out{margin-top:4px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:16px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);border-bottom:2px solid var(--ink);padding:8px 6px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:10px 6px;vertical-align:top}
+td.n{font-family:var(--mono);font-weight:600;white-space:nowrap}
+td.u{font-family:var(--mono);color:var(--muted);font-size:14px;white-space:nowrap}
+.big{font-family:var(--mono);font-weight:600;font-size:27px;line-height:1.1;color:var(--canopy)}
+.big.r{color:var(--root)} .big.c{color:var(--cryo)}
+.formula{font-family:var(--mono);font-size:14px;color:var(--muted);background:var(--bg);
+  border-radius:5px;padding:10px 12px;line-height:1.5;overflow-x:auto}
+.warn{border:1px solid var(--root);border-radius:8px;padding:14px 16px;font-size:15.5px;line-height:1.5}
+footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">UFAC · 22 de outubro de 2026</p>
+  <h1>Calculadora de meio de cultura</h1>
+  <p class="sub">Mini curso de transformação genética e cultura de tecidos de plantas. Mude qualquer número: a conta refaz na hora.</p>
+</header>
+
+<nav role="tablist" aria-label="Seções">
+  <button role="tab" id="t-meio" aria-controls="p-meio" aria-selected="true">Meio de cultura</button>
+  <button role="tab" id="t-cloro" aria-controls="p-cloro" aria-selected="false">Hipoclorito</button>
+  <button role="tab" id="t-reg" aria-controls="p-reg" aria-selected="false">Reguladores</button>
+  <button role="tab" id="t-est" aria-controls="p-est" aria-selected="false">Solução-estoque</button>
+</nav>
+
+<!-- MEIO -->
+<section class="panel" id="p-meio" role="tabpanel" aria-labelledby="t-meio">
+  <div class="card">
+    <h2>Quanto pesar para o volume que você quer</h2>
+    <div class="grid" style="margin-top:14px">
+      <label>Receita
+        <select id="m-preset">
+          <option value="conv">MS convencional</option>
+          <option value="low">Baixo custo</option>
+        </select>
+      </label>
+      <label>Volume de meio (L)
+        <input id="m-vol" type="number" min="0.05" step="0.1" value="1.5" inputmode="decimal">
+      </label>
+    </div>
+    <p class="hint" style="margin-top:12px">Os valores por litro são editáveis na tabela. Ajuste para a sua receita.</p>
+  </div>
+
+  <div class="out"><table id="m-table"></table></div>
+
+  <div class="warn" id="m-warn"></div>
+</section>
+
+<!-- CLORO -->
+<section class="panel" id="p-cloro" role="tabpanel" aria-labelledby="t-cloro" hidden>
+  <div class="card r">
+    <h2>As três diluições de hipoclorito</h2>
+    <p class="hint" style="margin-top:8px">O mesmo frasco serve para três usos que diferem em mais de 300 vezes. Comece pelo teor do rótulo.</p>
+    <div class="grid" style="margin-top:14px">
+      <label>Cloro ativo no rótulo (%)
+        <input id="c-teor" type="number" min="0.1" max="15" step="0.1" value="2.5" inputmode="decimal">
+      </label>
+      <label>Volume de meio (L)
+        <input id="c-vol" type="number" min="0.05" step="0.1" value="1.5" inputmode="decimal">
+      </label>
+      <label>Alvo no meio (ppm)
+        <input id="c-ppm" type="number" min="1" max="1000" step="1" value="40" inputmode="numeric">
+      </label>
+    </div>
+    <p class="hint" style="margin-top:12px">Água sanitária brasileira tem 2,0 a 2,5% por norma. Frasco velho ou aberto tem menos: use um novo.</p>
+  </div>
+
+  <div class="card c">
+    <h3>Solução-mãe 1:10 — prepare primeiro</h3>
+    <p class="big c" id="c-mae" style="margin-top:10px">—</p>
+    <p class="hint" id="c-mae-h" style="margin-top:8px"></p>
+  </div>
+
+  <div class="out"><table id="c-table"></table></div>
+
+  <div class="card">
+    <h3>Como a conta sai</h3>
+    <p class="formula" id="c-formula" style="margin-top:10px"></p>
+  </div>
+
+  <div class="warn">
+    <b>No meio de baixo custo, o cloro entra depois de esfriar.</b> O amido precisa ferver para gelatinizar, e essa fervura é a esterilização principal; cloro em meio quente se decompõe. Espere chegar a uns 50 °C.
+  </div>
+</section>
+
+<!-- REGULADORES -->
+<section class="panel" id="p-reg" role="tabpanel" aria-labelledby="t-reg" hidden>
+  <div class="card c">
+    <h2>mg/L e µmol/L</h2>
+    <p class="hint" style="margin-top:8px">Artigo antigo traz mg/L, artigo novo traz µmol/L. É a mesma dose em unidades diferentes.</p>
+    <div class="grid" style="margin-top:14px">
+      <label>Regulador
+        <select id="r-sel"></select>
+      </label>
+      <label>Converter de
+        <select id="r-dir">
+          <option value="mgl">mg/L para µmol/L</option>
+          <option value="umol">µmol/L para mg/L</option>
+        </select>
+      </label>
+      <label>Valor
+        <input id="r-val" type="number" min="0" step="0.1" value="1" inputmode="decimal">
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="hint">Resultado</p>
+    <p class="big c" id="r-out" style="margin-top:8px">—</p>
+    <p class="formula" id="r-formula" style="margin-top:14px"></p>
+  </div>
+
+  <div class="out"><table id="r-table"></table></div>
+</section>
+
+<!-- ESTOQUE -->
+<section class="panel" id="p-est" role="tabpanel" aria-labelledby="t-est" hidden>
+  <div class="card">
+    <h2>Quanto da solução-estoque pipetar</h2>
+    <p class="hint" style="margin-top:8px">Reguladores não se pesam por litro: a dose é pequena demais. Pesa-se uma vez, guarda-se concentrado e pipeta-se.</p>
+    <div class="grid" style="margin-top:14px">
+      <label>Estoque (mg/mL)
+        <input id="e-conc" type="number" min="0.001" step="0.1" value="1" inputmode="decimal">
+      </label>
+      <label>Alvo no meio (mg/L)
+        <input id="e-alvo" type="number" min="0" step="0.1" value="0.5" inputmode="decimal">
+      </label>
+      <label>Volume de meio (mL)
+        <input id="e-vol" type="number" min="1" step="100" value="1500" inputmode="decimal">
+      </label>
+    </div>
+  </div>
+
+  <div class="card c">
+    <p class="hint">Pipetar</p>
+    <p class="big c" id="e-out" style="margin-top:8px">—</p>
+    <p class="formula" id="e-formula" style="margin-top:14px"></p>
+  </div>
+
+  <div class="warn">
+    Se o volume der menos de 0,1 mL, dilua o estoque em vez de confiar na micropipeta no fundo da escala. Erro de pipetagem nessa faixa muda a razão auxina/citocinina e muda o que o explante forma.
+  </div>
+</section>
+
+<footer>
+  <p>Prof. Bruno Trevenzoli Favero · Universidade Federal do Acre · Projeto ConservaçãoRaiz</p>
+  <p style="margin-top:6px">Os valores padrão são os usados no curso. Confira sempre contra o seu protocolo e o rótulo do seu reagente.</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* ---------- utilidades ---------- */
+var num = function (el) { var v = parseFloat(String(el.value).replace(",", ".")); return isFinite(v) ? v : 0; };
+var fmt = function (v, d) {
+  if (!isFinite(v)) return "—";
+  var s = v.toFixed(d === undefined ? 2 : d);
+  return s.replace(".", ",");
+};
+var smart = function (v) {
+  var a = Math.abs(v);
+  if (a === 0) return "0";
+  if (a < 0.01) return fmt(v, 4);
+  if (a < 1) return fmt(v, 3);
+  if (a < 100) return fmt(v, 2);
+  return fmt(v, 1);
+};
+var esc = function (s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); };
+
+/* ---------- abas ---------- */
+var TABS = [["t-meio", "p-meio", "meio"], ["t-cloro", "p-cloro", "cloro"],
+            ["t-reg", "p-reg", "reguladores"], ["t-est", "p-est", "estoque"]];
+
+function show(token) {
+  var found = false;
+  TABS.forEach(function (t) {
+    var on = t[2] === token;
+    if (on) found = true;
+    document.getElementById(t[0]).setAttribute("aria-selected", on ? "true" : "false");
+    document.getElementById(t[1]).hidden = !on;
+  });
+  if (!found) show("meio");
+}
+TABS.forEach(function (t) {
+  document.getElementById(t[0]).addEventListener("click", function () {
+    show(t[2]);
+    try { history.replaceState(null, "", "#" + t[2]); } catch (e) { }
+  });
+});
+show((location.hash || "").replace("#", "") || "meio");
+
+/* ---------- 1. meio de cultura ---------- */
+var RECIPES = {
+  conv: {
+    nome: "MS convencional",
+    nota: "Ajuste o pH para 5,7–5,8 antes de autoclavar, 121 °C por 15 min. Se a sua mistura MS já traz vitaminas, zere as duas linhas delas.",
+    itens: [
+      ["Sais MS (mistura comercial)", 4.3, "g"],
+      ["Sacarose p.a.", 30, "g"],
+      ["Ágar bacteriológico", 7, "g"],
+      ["Mio-inositol", 100, "mg"],
+      ["Tiamina·HCl", 1, "mg"]
+    ]
+  },
+  low: {
+    nome: "Baixo custo",
+    nota: "Dissolva o amido a frio, ferva mexendo até engrossar — essa fervura é a esterilização —, ajuste o pH, deixe esfriar até uns 50 °C e só então acrescente o cloro.",
+    itens: [
+      ["Adubo foliar solúvel", 2, "g"],
+      ["Açúcar cristal", 30, "g"],
+      ["Amido de milho", 80, "g"],
+      ["Ágar", 2, "g"],
+      ["Tiamina·HCl", 1, "mg"]
+    ]
+  }
+};
+var mEdit = {};
+
+function mRender() {
+  var key = document.getElementById("m-preset").value;
+  var rec = RECIPES[key];
+  var vol = num(document.getElementById("m-vol"));
+  var rows = "<tr><th>Componente</th><th>Por litro</th><th>Para " + smart(vol) + " L</th></tr>";
+  rec.itens.forEach(function (it, i) {
+    var id = key + "-" + i;
+    var per = (mEdit[id] === undefined) ? it[1] : mEdit[id];
+    rows += "<tr><td>" + esc(it[0]) + "</td>"
+      + '<td class="u"><input data-k="' + id + '" class="m-in" type="number" min="0" step="any" value="' + per
+      + '" inputmode="decimal" style="width:88px;display:inline-block"> ' + it[2] + "</td>"
+      + '<td class="n">' + smart(per * vol) + " " + it[2] + "</td></tr>";
+  });
+  document.getElementById("m-table").innerHTML = rows;
+  document.getElementById("m-warn").innerHTML = "<b>" + esc(rec.nome) + ".</b> " + esc(rec.nota);
+
+  Array.prototype.forEach.call(document.querySelectorAll(".m-in"), function (inp) {
+    inp.addEventListener("input", function () {
+      mEdit[inp.getAttribute("data-k")] = num(inp);
+      mRender();
+    });
+  });
+}
+document.getElementById("m-preset").addEventListener("change", mRender);
+document.getElementById("m-vol").addEventListener("input", mRender);
+mRender();
+
+/* ---------- 2. hipoclorito ---------- */
+function cRender() {
+  var teor = num(document.getElementById("c-teor"));   /* % m/v */
+  var vol = num(document.getElementById("c-vol"));     /* L de meio */
+  var ppm = num(document.getElementById("c-ppm"));     /* mg/L */
+
+  var puro = teor * 10;        /* g de cloro ativo por litro de agua sanitaria */
+  var mae = puro / 10;         /* g/L na solucao-mae 1:10 */
+
+  document.getElementById("c-mae").textContent = "100 mL de água sanitária + 900 mL de água";
+  document.getElementById("c-mae-h").textContent =
+    "Fica com " + smart(mae) + " g de cloro ativo por litro, ou " + smart(mae * 1000)
+    + " ppm. Prepare 1 L e rotule — serve para o meio e para os potes.";
+
+  /* no meio */
+  var gMeio = ppm * vol / 1000;
+  var mlPuroMeio = puro > 0 ? (gMeio / puro) * 1000 : 0;
+  var mlMaeMeio = mlPuroMeio * 10;
+  var mlMaePorL = puro > 0 ? ((ppm / 1000) / puro) * 1000 * 10 : 0;
+
+  /* potes, 50 ppm em 5 L */
+  var volPotes = 5, ppmPotes = 50;
+  var mlMaePotes = puro > 0 ? ((ppmPotes * volPotes / 1000) / puro) * 1000 * 10 : 0;
+
+  /* explantes, 1,25% em 1 L */
+  var alvoExp = 1.25, volExp = 1;
+  var mlPuroExp = teor > 0 ? (alvoExp / teor) * volExp * 1000 : 0;
+  var aguaExp = Math.max(0, volExp * 1000 - mlPuroExp);
+
+  var rows = "<tr><th>Para que</th><th>Alvo</th><th>Medir</th></tr>"
+    + '<tr><td>No meio<br><span class="hint">' + smart(vol) + " L</span></td>"
+    + '<td class="u">' + smart(ppm) + " ppm</td>"
+    + '<td class="n">' + smart(mlMaeMeio) + " mL da solução-mãe<br>"
+    + '<span class="hint">' + smart(mlMaePorL) + " mL por litro de meio</span></td></tr>"
+
+    + '<tr><td>Enxaguar os potes<br><span class="hint">5 L de solução</span></td>'
+    + '<td class="u">50 ppm</td>'
+    + '<td class="n">' + smart(mlMaePotes) + " mL da solução-mãe<br>"
+    + '<span class="hint">completar com água até 5 L</span></td></tr>'
+
+    + '<tr><td>Desinfestar o explante<br><span class="hint">1 L de solução</span></td>'
+    + '<td class="u">1,25%</td>'
+    + '<td class="n">' + smart(mlPuroExp) + " mL de água sanitária <b>pura</b><br>"
+    + '<span class="hint">+ ' + smart(aguaExp) + " mL de água + 20 gotas de detergente</span></td></tr>";
+
+  document.getElementById("c-table").innerHTML = rows;
+
+  document.getElementById("c-formula").textContent =
+    "cloro ativo na água sanitária = " + smart(teor) + "% × 10 = " + smart(puro) + " g/L\n"
+    + "massa necessária = " + smart(ppm) + " ppm × " + smart(vol) + " L ÷ 1000 = " + smart(gMeio) + " g\n"
+    + "volume puro = " + smart(gMeio) + " g ÷ " + smart(puro) + " g/L = " + smart(mlPuroMeio) + " mL\n"
+    + "na solução 1:10 = " + smart(mlPuroMeio) + " mL × 10 = " + smart(mlMaeMeio) + " mL";
+}
+["c-teor", "c-vol", "c-ppm"].forEach(function (id) {
+  document.getElementById(id).addEventListener("input", cRender);
+});
+cRender();
+
+/* ---------- 3. reguladores ---------- */
+var REG = [
+  ["BAP · 6-benzilaminopurina", 225.25, "citocinina"],
+  ["Cinetina", 215.21, "citocinina"],
+  ["TDZ · tidiazurom", 220.25, "citocinina"],
+  ["AIA · ácido indolacético", 175.18, "auxina"],
+  ["ANA · ácido naftalenoacético", 186.21, "auxina"],
+  ["AIB · ácido indolbutírico", 203.24, "auxina"],
+  ["2,4-D", 221.04, "auxina"],
+  ["GA₃ · ácido giberélico", 346.37, "giberelina"]
+];
+var sel = document.getElementById("r-sel");
+REG.forEach(function (r, i) {
+  var o = document.createElement("option");
+  o.value = String(i); o.textContent = r[0];
+  sel.appendChild(o);
+});
+
+function rRender() {
+  var r = REG[parseInt(sel.value, 10) || 0];
+  var mm = r[1];
+  var dir = document.getElementById("r-dir").value;
+  var val = num(document.getElementById("r-val"));
+
+  if (dir === "mgl") {
+    var umol = (val / mm) * 1000;
+    document.getElementById("r-out").textContent = smart(umol) + " µmol/L";
+    document.getElementById("r-formula").textContent =
+      "µmol/L = mg/L ÷ massa molar × 1000\n"
+      + smart(val) + " ÷ " + mm + " × 1000 = " + smart(umol) + " µmol/L";
+  } else {
+    var mgl = val * mm / 1000;
+    document.getElementById("r-out").textContent = smart(mgl) + " mg/L";
+    document.getElementById("r-formula").textContent =
+      "mg/L = µmol/L × massa molar ÷ 1000\n"
+      + smart(val) + " × " + mm + " ÷ 1000 = " + smart(mgl) + " mg/L";
+  }
+
+  var rows = "<tr><th>Regulador</th><th>Classe</th><th>Massa molar</th><th>1 mg/L equivale a</th></tr>";
+  REG.forEach(function (x) {
+    rows += "<tr><td>" + esc(x[0]) + "</td><td>" + esc(x[2]) + "</td>"
+      + '<td class="u">' + x[1] + " g/mol</td>"
+      + '<td class="n">' + smart((1 / x[1]) * 1000) + " µmol/L</td></tr>";
+  });
+  document.getElementById("r-table").innerHTML = rows;
+}
+sel.addEventListener("change", rRender);
+document.getElementById("r-dir").addEventListener("change", rRender);
+document.getElementById("r-val").addEventListener("input", rRender);
+rRender();
+
+/* ---------- 4. solucao-estoque ---------- */
+function eRender() {
+  var conc = num(document.getElementById("e-conc"));  /* mg/mL */
+  var alvo = num(document.getElementById("e-alvo"));  /* mg/L */
+  var vol = num(document.getElementById("e-vol"));    /* mL */
+
+  var massa = alvo * vol / 1000;                      /* mg */
+  var ml = conc > 0 ? massa / conc : 0;
+
+  document.getElementById("e-out").textContent = smart(ml) + " mL";
+  document.getElementById("e-formula").textContent =
+    "massa necessária = " + smart(alvo) + " mg/L × " + smart(vol) + " mL ÷ 1000 = " + smart(massa) + " mg\n"
+    + "volume do estoque = " + smart(massa) + " mg ÷ " + smart(conc) + " mg/mL = " + smart(ml) + " mL";
+}
+["e-conc", "e-alvo", "e-vol"].forEach(function (id) {
+  document.getElementById(id).addEventListener("input", eRender);
+});
+eRender();
+</script>
+</body>
+</html>
